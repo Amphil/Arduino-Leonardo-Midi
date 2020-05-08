@@ -5,7 +5,7 @@
 // "ATMEGA328" if using ATmega328 - Uno, Mega, Nano...
 // "ATMEGA32U4" if using with ATmega32U4 - Micro, Pro Micro, Leonardo...
 // "TEENSY" if using a Teensy board
-// "DEBUG" if you just want to debug the code in the serial monitor
+// "DEBUG" if you just want to debug the code in the seQrial monitor
 // you don't need to comment or uncomment any MIDI library below after you define your board
 
 #define ATMEGA32U4 1 //* put here the uC you are using, like in the lines above followed by "1", like "ATMEGA328 1", "DEBUG 1", etc.
@@ -49,6 +49,9 @@ const int POT_ARDUINO_PIN[N_POTS] = {A3, A2, A1, A0,}; //* pins of each pot conn
 int potCState[N_POTS] = {0}; // Current state of the pot
 int potPState[N_POTS] = {0}; // Previous state of the pot
 int potVar = 0; // Difference between the current and previous state of the pot
+
+int potChSelect; // Variable to hold the channel select pot value ////////////////////////////////
+const int potChSelectPin = A5; // Variable to hold the channel select pin ///////////////////////
 
 int midiCState[N_POTS] = {0}; // Current state of the midi value
 int midiPState[N_POTS] = {0}; // Previous state of the midi value
@@ -176,6 +179,19 @@ MidiUSB.flush();
 // POTENTIOMETERS
 void potentiometers() {
 
+  potChSelect = analogRead(potChSelectPin); // read value on ch select pot, if midiCh doesn't match then change it
+  if(potChSelect < 255 && midiCh != 0){
+    midiCh = 0; // first 1/4 of pot sets channel as 0
+  }
+  else if(potChSelect >= 255 && potChSelect < 510 && midiCh != 1){
+    midiCh = 1; // second 1/4 of pot sets channel as 1
+  }
+ else if(potChSelect  >= 510 && potChSelect < 1000 && midiCh != 2){
+    midiCh = 2; // third part sets channel 2
+  }
+  else if(potChSelect >= 1000 && midiCh != 3){
+  midiCh = 3; // anything else (i.e. 768-1023) sets channel 3
+  }
 
   for (int i = 0; i < N_POTS; i++) { // Loops through all the potentiometers
 
